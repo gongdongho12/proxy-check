@@ -7,7 +7,9 @@ const router = Router();
 function getDnsServers() {
 	return dns
 		.getServers()
-		.filter((v) => !(v.startsWith("192.126.63") || v.startsWith("192.168.1")));
+		.filter(
+			(v) => !(v.startsWith("168.126.63.") || v.startsWith("192.168.1."))
+		);
 }
 
 router.get("/check_proxy", async (req, res) => {
@@ -17,6 +19,7 @@ router.get("/check_proxy", async (req, res) => {
 	console.log("ports", ports);
 
 	const mobileProxy = getDnsServers();
+	console.log("mobileProxy", mobileProxy);
 	const proxies: { host: string; port: string }[] = [];
 	mobileProxy.forEach((host) => {
 		console.log("host", host);
@@ -28,13 +31,13 @@ router.get("/check_proxy", async (req, res) => {
 			proxies.push(proxy);
 		});
 	});
-	const availableProxyPorts: string[] = [];
+	const availableProxyPorts = new Set<string>();
 	await proxies.reduce((prev, proxy) => {
 		return prev.then(() =>
 			proxy_check(proxy)
-				.then(() => {
-					console.log("availableProxyPort", proxy.port);
-					availableProxyPorts.push(proxy.port);
+				.then((r: boolean) => {
+					console.log(`availableProxyPort, ${r}`, proxy.port);
+					availableProxyPorts.add(proxy.port);
 				})
 				.catch((e: any) => {
 					console.error(`port: ${proxy.port}`, e);
@@ -42,7 +45,7 @@ router.get("/check_proxy", async (req, res) => {
 		);
 	}, Promise.resolve());
 	res.send({
-		availableProxyPorts,
+		availableProxyPorts: Array.from(availableProxyPorts),
 	});
 });
 
