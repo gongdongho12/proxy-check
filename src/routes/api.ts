@@ -5,7 +5,9 @@ import dns from "dns";
 const router = Router();
 
 function getDnsServers() {
-	return dns.getServers();
+	return dns
+		.getServers()
+		.filter((v) => !(v.startsWith("192.126.63") || v.startsWith("192.168.1")));
 }
 
 router.get("/check_proxy", async (req, res) => {
@@ -31,6 +33,7 @@ router.get("/check_proxy", async (req, res) => {
 		return prev.then(() =>
 			proxy_check(proxy)
 				.then(() => {
+					console.log("availableProxyPort", proxy.port);
 					availableProxyPorts.push(proxy.port);
 				})
 				.catch((e: any) => {
