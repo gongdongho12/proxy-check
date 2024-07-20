@@ -1,8 +1,9 @@
-# Expressjs TypeScript Boilerplate
+# Proxy Check Service
 
-This is a node.js boilerplate for express.js with typescript.
+This is a node.js proxy check api with typescript.
 
 ## Logic Configuration
+
 - Express.js
 - TypeScript
 - Cluster
