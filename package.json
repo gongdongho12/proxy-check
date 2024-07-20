@@ -6,7 +6,10 @@
 	"scripts": {
 		"start": "node ./dist/index.js",
 		"build": "webpack --config ./webpack.config.js",
-		"dev": "webpack --config ./webpack.dev.config.js"
+		"dev": "webpack --config ./webpack.dev.config.js",
+		"docker-build": "docker build -t dongho1596/proxy-check .",
+		"docker-run": "docker run -d --name proxy-check -p 3000:3000 -it dongho1596/proxy-check",
+		"docker-deploy": "docker push dongho1596/proxy-check"
 	},
 	"keywords": [],
 	"author": "",

@@ -15,18 +15,17 @@ router.get("/check_proxy", async (req, res) => {
 	console.log("ports", ports);
 
 	const mobileProxy = getDnsServers();
-	const proxies: { host: string; port: string }[] = mobileProxy.flatMap(
-		(host) => {
-			console.log("host", host);
-			return ports.map((port: string) => {
-				const proxy = {
-					host,
-					port,
-				};
-				return proxy;
-			});
-		}
-	);
+	const proxies: { host: string; port: string }[] = [];
+	mobileProxy.forEach((host) => {
+		console.log("host", host);
+		ports.forEach((port: string) => {
+			const proxy = {
+				host,
+				port,
+			};
+			proxies.push(proxy);
+		});
+	});
 	const availableProxyPorts: string[] = [];
 	await proxies.reduce((prev, proxy) => {
 		return prev.then(() =>
