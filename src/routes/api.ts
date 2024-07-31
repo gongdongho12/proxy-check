@@ -29,7 +29,9 @@ function getGateway(interfaceName: string): Promise<string> {
 	return new Promise((resolve, reject) => {
 		exec(command, (err: any, stdout: string, stderr: any) => {
 			if (err || stderr) {
-				reject(err || new Error(stderr));
+				console.log("stderr", stderr);
+				console.log("err", err);
+				reject(err || stderr);
 			}
 
 			const gateway =
@@ -98,25 +100,33 @@ router.get("/generate_proxy", async (req, res) => {
 	const { ports = ["8080", "8081"], password = undefined }: any = req.query;
 
 	const interfaces = getNetworkInterfaces();
-	interfaces.forEach((iface) => {
-		getGateway(iface.name).then((gateway: string) => {
-			console.log(
-				`Interface: ${iface.name}, IPv4: ${iface.address}, Gateway: ${gateway}`
-			);
-		});
-	});
+	const gateways = await interfaces.reduce(
+		(prevPromise: Promise<any[]>, iface: any) => {
+			return prevPromise.then((prev: any[]) => {
+				return getGateway(iface.name)
+					.then((gateway: string) => {
+						console.log(
+							`Interface: ${iface.name}, IPv4: ${iface.address}, Gateway: ${gateway}`
+						);
+						return { ...iface, gateway } as any;
+					})
+					.then((gateway: any) => [...prev, gateway])
+					.catch(() => prev);
+			});
+		},
+		Promise.resolve([])
+	);
 
 	console.log("req.query", req.query);
 	console.log("ports", ports);
+	console.log("gateways", gateways);
 
-	const mobileProxy = getDnsServers();
-	console.log("mobileProxy", mobileProxy);
 	const proxies: { host: string; port: string }[] = [];
-	mobileProxy.forEach((host) => {
-		console.log("host", host);
+	gateways.forEach(({ gateway }) => {
+		console.log("gateway", gateway);
 		ports.forEach((port: string) => {
 			const proxy = {
-				host,
+				host: gateway,
 				port,
 			};
 			proxies.push(proxy);
