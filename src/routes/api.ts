@@ -25,7 +25,7 @@ router.get("/check_proxy", async (req, res) => {
 
 	console.log("req.query", req.query);
 	console.log("ports", ports);
-	console.log("networkInterfaces", networkInterfaces);
+	console.log("networkInterfaces", networkInterfaces());
 
 	const mobileProxy = getDnsServers();
 	console.log("mobileProxy", mobileProxy);
