@@ -145,7 +145,7 @@ router.get("/generate_proxy", async (req, res) => {
 					if (password) {
 						const stopCommand = `sudo docker stop mitmproxy${proxy.port}`;
 						const deleteCommand = `sudo docker rm mitmproxy${proxy.port}`;
-						const runCommand = `sudo docker run -it --cpus=2 -m 1024m --memory-reservation=512m --restart always -p ${proxy.port}:${proxy.port} --name mitmproxy${proxy.port} -d mitmproxy/mitmproxy:latest mitmproxy --set 	block_global=false --set listen_port=${proxy.port} --mode upstream:http://${proxy.host}:${proxy.port}`;
+						const runCommand = `sudo docker run -it --cpus=2 -m 1024m --memory-reservation=512m --restart always -p ${proxy.port}:${proxy.port} --name mitmproxy${proxy.port} -d mitmproxy/mitmproxy:latest mitmproxy --set block_global=false --set listen_port=${proxy.port} --mode upstream:http://${proxy.host}:${proxy.port}`;
 						console.log("stopCommand", stopCommand);
 						console.log("deleteCommand", deleteCommand);
 						console.log("runCommand", runCommand);
