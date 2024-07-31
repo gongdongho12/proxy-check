@@ -143,10 +143,13 @@ router.get("/generate_proxy", async (req, res) => {
 					console.log(`availableProxyPort, ${r}`, proxy.port);
 					availableProxyPorts.add(proxy.port);
 					if (password) {
-						const command = `echo "${password}" | sudo -S "docker run -it --cpus=2 -m 1024m --memory-reservation=1024m --restart always -p ${proxy.port}:${proxy.port} --name mitmproxy${proxy.port} -d mitmproxy/mitmproxy:latest mitmproxy --set 	block_global=false --set listen_port=${proxy.port} --mode upstream:http://${proxy.host}:${proxy.port}"`;
-						return shellExec(command).then(() => {
-							console.log("mitmproxy run");
-						});
+						const deleteCommand = `echo "${password}" | sudo -S "docker rm mitmproxy${proxy.port}"`;
+						const runCommand = `echo "${password}" | sudo -S "docker run -it --cpus=2 -m 1024m --memory-reservation=1024m --restart always -p ${proxy.port}:${proxy.port} --name mitmproxy${proxy.port} -d mitmproxy/mitmproxy:latest mitmproxy --set 	block_global=false --set listen_port=${proxy.port} --mode upstream:http://${proxy.host}:${proxy.port}"`;
+						return shellExec(deleteCommand).then(() =>
+							shellExec(runCommand).then(() => {
+								console.log("mitmproxy generate");
+							})
+						);
 					}
 				})
 				.catch((e: any) => {
