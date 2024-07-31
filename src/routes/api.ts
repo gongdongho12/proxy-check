@@ -6,17 +6,17 @@ import dns from "dns";
 const router = Router();
 
 function getDnsServers() {
-	return dns
-		.getServers()
-		.filter(
-			(v) =>
-				!(
-					v.startsWith("168.126.63.") ||
-					v.startsWith("192.168.1.") ||
-					v.startsWith("8.8.8.8") ||
-					v.startsWith("192.168.30.")
-				)
-		);
+	const allDns = dns.getServers();
+	console.log("allDns", allDns);
+	return allDns.filter(
+		(v) =>
+			!(
+				v.startsWith("168.126.63.") ||
+				v.startsWith("192.168.1.") ||
+				v.startsWith("8.8.8.8") ||
+				v.startsWith("192.168.30.")
+			)
+	);
 }
 
 router.get("/check_proxy", async (req, res) => {
