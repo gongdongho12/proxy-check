@@ -103,7 +103,7 @@ router.get("/generate_proxy", async (req, res) => {
 	const gateways = await interfaces.reduce(
 		(prevPromise: Promise<any[]>, iface: any) => {
 			return prevPromise.then((prev: any[]) => {
-				if (!iface.name.startWith("usb")) {
+				if (!iface.name.startsWith("usb")) {
 					return prev;
 				}
 				return getGateway(iface.name)
