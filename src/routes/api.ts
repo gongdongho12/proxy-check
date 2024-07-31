@@ -3,6 +3,7 @@ import { Router } from "express";
 import proxy_check from "proxy-check";
 import shellExec from "shell-exec";
 import dns from "dns";
+import { networkInterfaces } from "os";
 const router = Router();
 
 function getDnsServers() {
@@ -20,6 +21,44 @@ function getDnsServers() {
 }
 
 router.get("/check_proxy", async (req, res) => {
+	const { ports = ["8080", "8081"] }: any = req.query;
+
+	console.log("req.query", req.query);
+	console.log("ports", ports);
+	console.log("networkInterfaces", networkInterfaces);
+
+	const mobileProxy = getDnsServers();
+	console.log("mobileProxy", mobileProxy);
+	const proxies: { host: string; port: string }[] = [];
+	mobileProxy.forEach((host) => {
+		console.log("host", host);
+		ports.forEach((port: string) => {
+			const proxy = {
+				host,
+				port,
+			};
+			proxies.push(proxy);
+		});
+	});
+	const availableProxyPorts = new Set<string>();
+	await proxies.reduce((prev, proxy) => {
+		return prev.then(() =>
+			proxy_check(proxy)
+				.then((r: boolean) => {
+					console.log(`availableProxyPort, ${r}`, proxy.port);
+					availableProxyPorts.add(proxy.port);
+				})
+				.catch((e: any) => {
+					console.error(`port: ${proxy.port}`, e);
+				})
+		);
+	}, Promise.resolve());
+	res.send({
+		availableProxyPorts: Array.from(availableProxyPorts),
+	});
+});
+
+router.get("/generate_proxy", async (req, res) => {
 	const { ports = ["8080", "8081"], password = undefined }: any = req.query;
 
 	console.log("req.query", req.query);
