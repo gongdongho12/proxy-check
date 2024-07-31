@@ -4,6 +4,43 @@ import proxy_check from "proxy-check";
 import shellExec from "shell-exec";
 import dns from "dns";
 import { networkInterfaces } from "os";
+
+const os = require("os");
+const { exec } = require("child_process");
+
+function getNetworkInterfaces() {
+	const interfaces = os.networkInterfaces();
+	return Object.keys(interfaces)
+		.map((name) => {
+			const iface = interfaces[name].find(
+				(details: any) => details.family === "IPv4" && !details.internal
+			);
+			return iface ? { name, address: iface.address } : null;
+		})
+		.filter(Boolean);
+}
+
+function getGateway(interfaceName: string): Promise<string> {
+	const command =
+		process.platform === "win32"
+			? `netstat -rn | findstr ${interfaceName}`
+			: `ip route | grep ${interfaceName} | grep default`;
+
+	return new Promise((resolve, reject) => {
+		exec(command, (err: any, stdout: string, stderr: any) => {
+			if (err || stderr) {
+				reject(err || new Error(stderr));
+			}
+
+			const gateway =
+				process.platform === "win32"
+					? stdout.split(/\s+/)[2] // Windows
+					: stdout.split(" ")[2]; // Unix-based
+			resolve(gateway);
+		});
+	});
+}
+
 const router = Router();
 
 function getDnsServers() {
@@ -25,7 +62,6 @@ router.get("/check_proxy", async (req, res) => {
 
 	console.log("req.query", req.query);
 	console.log("ports", ports);
-	console.log("networkInterfaces", networkInterfaces());
 
 	const mobileProxy = getDnsServers();
 	console.log("mobileProxy", mobileProxy);
@@ -60,6 +96,15 @@ router.get("/check_proxy", async (req, res) => {
 
 router.get("/generate_proxy", async (req, res) => {
 	const { ports = ["8080", "8081"], password = undefined }: any = req.query;
+
+	const interfaces = getNetworkInterfaces();
+	interfaces.forEach((iface) => {
+		getGateway(iface.name).then((gateway: string) => {
+			console.log(
+				`Interface: ${iface.name}, IPv4: ${iface.address}, Gateway: ${gateway}`
+			);
+		});
+	});
 
 	console.log("req.query", req.query);
 	console.log("ports", ports);
