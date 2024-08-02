@@ -135,13 +135,13 @@ router.get("/generate_proxy", async (req, res) => {
 			proxies.push(proxy);
 		});
 	});
-	const availableProxyPorts = new Set<string>();
+	const availableProxies = new Set<string>();
 	await proxies.reduce((prev, proxy) => {
 		return prev.then(() =>
 			proxy_check(proxy)
 				.then((r: boolean) => {
 					console.log(`availableProxyPort, ${r}`, proxy.port);
-					availableProxyPorts.add(proxy.port);
+					availableProxies.add(`${proxy.host}:${proxy.port}`);
 					if (password) {
 						const stopCommand = `echo "${password}" | sudo -S docker stop mitmproxy${proxy.port}`;
 						const deleteCommand = `echo "${password}" | sudo -S docker rm mitmproxy${proxy.port}`;
@@ -164,7 +164,7 @@ router.get("/generate_proxy", async (req, res) => {
 		);
 	}, Promise.resolve());
 	res.send({
-		availableProxyPorts: Array.from(availableProxyPorts),
+		availableProxies: Array.from(availableProxies),
 	});
 });
 
